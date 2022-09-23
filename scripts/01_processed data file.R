@@ -51,6 +51,7 @@ all_variants_df<-all_variants_df[,c("aa_seq","ID","dataset", "mean_count","nscor
 
 
 #find non-nucleating variants (they have input reads but 0 output reads- NS not calculated)
+#each AA variant is only resulting from one nt sequence by design (non nuc nt seq results in non nuc aa seq)
 non_nuc_df<-variant_data_merge_df[variant_data_merge_df$output1_e1_s1_b1_count==0  &
                                     variant_data_merge_df$output2_e2_s1_b1_count==0  &
                                     variant_data_merge_df$output3_e3_s1_b1_count==0 ,]

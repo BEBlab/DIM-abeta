@@ -8,12 +8,20 @@ require(stringr)
 
 
 ##  import required data 
+load("required data/fAD.df.RData")
 load("required data/indels_library.RData")
 INDEL.df<-as.data.frame(read_excel("required data/MS_BL_BB_indels_processed_data.xlsx", sheet="all_variants"))
 
 
 #########################################################################################################################################
 
+
+
+
+# make sure the fAD are well annotated
+INDEL.df$fAD<-"non-fAD"
+INDEL.df[INDEL.df$aa_seq %in% fAD.df[fAD.df$dominant_recessive=="D",]$aa_seq,]$fAD<-"fAD_d"
+INDEL.df[INDEL.df$aa_seq %in% fAD.df[fAD.df$dominant_recessive=="R",]$aa_seq,]$fAD<-"fAD_r"
 
 
 

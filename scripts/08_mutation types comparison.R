@@ -204,11 +204,11 @@ ggsave(p_both, file="p_subst_ins_before_after.pdf", width = 3, height = 6, path=
 #### substitutions and insertions
 # by aa mut
 
-all_aa<-as.vector(unique(singles_insertions_dels$Mut))
+AA_loop<- all_aa[all_aa %in% unique(singles_insertions_dels$Mut)]
 
 
 corr_vector=c()
-for(i in all_aa){
+for(i in AA_loop){
   corr<-cor.test(singles_insertions_dels[singles_insertions_dels$Mut==i,]$nscore_single,
                  singles_insertions_dels[singles_insertions_dels$Mut==i,]$nscore_ins_before, use="complete.obs")$estimate
   p_value<-cor.test(singles_insertions_dels[singles_insertions_dels$Mut==i,]$nscore_single,
@@ -226,7 +226,7 @@ p_before<-ggplot(singles_insertions_dels, aes(x=nscore_single, y=nscore_ins_befo
   geom_vline(xintercept = 0,linetype="dashed", color="darkgrey")+
   geom_point(aes(color=as.numeric(Pos)))+
   theme_bw()+
-  facet_wrap(~Mut)+
+  facet_wrap(~factor(Mut, levels=AA_loop))+
   theme(panel.grid = element_blank())+
   scale_color_viridis_c()+
   geom_text(data=corr_text, aes(label=paste0("R=",round(corr, 2)), x=-Inf, y=Inf), hjust=-0.15,vjust=1.5, size=4, colour="black")+
@@ -238,7 +238,7 @@ ggsave(p_before, file="p_subst_ins_before_by mut.pdf", width = 10, height = 8, p
 
 
 corr_vector=c()
-for(i in all_aa){
+for(i in AA_loop){
   corr<-cor.test(singles_insertions_dels[singles_insertions_dels$Mut==i,]$nscore_single,
                  singles_insertions_dels[singles_insertions_dels$Mut==i,]$nscore_ins_after, use="complete.obs")$estimate
   p_value<-cor.test(singles_insertions_dels[singles_insertions_dels$Mut==i,]$nscore_single,
@@ -256,7 +256,7 @@ p_after<-ggplot(singles_insertions_dels, aes(x=nscore_single, y=nscore_ins_after
   geom_vline(xintercept = 0,linetype="dashed", color="darkgrey")+
   geom_point(aes(color=as.numeric(Pos)))+
   theme_bw()+
-  facet_wrap(~Mut)+
+  facet_wrap(~factor(Mut, levels=AA_loop))+
   theme(panel.grid = element_blank())+
   scale_color_viridis_c()+
   geom_text(data=corr_text, aes(label=paste0("R=",round(corr, 2)), x=-Inf, y=Inf), hjust=-0.15,vjust=1.5, size=4, colour="black")+

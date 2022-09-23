@@ -8,6 +8,8 @@ require(ggpubr)
 require(dplyr)
 require(reshape2)
 require(weights)
+require(DescTools)
+require(ggrepel)
 
 
 dir.create("_DMS data quality")
@@ -21,6 +23,7 @@ load("INDEL_datasets.RData")
 load("required data/error_prone_pcr_singles.RData")
 load("required data/small_scale_validation.RData")
 load("required data/kinetics.RData")
+load("required data/toxicity_validation.RData")
 
 
 #########################################################################################################################################
@@ -171,15 +174,13 @@ ggsave(p_small_large_scale, file="p_small_large_scale.pdf", width = 4.5, height 
 
 kinetics<-left_join(kinetics, INDEL.df[,c("ID", "nscore_c", "sigma")], by="ID")
 kinetics[kinetics$ID=="WT", c("nscore_c", "sigma")]<-2.2e-16
-
-# calculate Kn and K2 parameters
-kinetics$kn<-paste(as.numeric(kinetics$primary)/as.numeric(kinetics$elongation))
-kinetics$k2<-paste(as.numeric(kinetics$secondary)/as.numeric(kinetics$elongation))
+kinetics[kinetics$ID=="I-41-*",]$nscore_c<-INDEL.df[INDEL.df$aa_seq=="DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVV",]$nscore_c
+kinetics[kinetics$ID=="I-41-*",]$sigma<-INDEL.df[INDEL.df$aa_seq=="DAEFRHDSGYEVHHQKLVFFAEDVGSNKGAIIGLMVGGVV",]$sigma
 
 
 corr_vector=c()
 pval_vector=c()
-measurements<-c("kn","k2")
+measurements<-c("k+kn_tht","k+k2_tht", "lambda_HDXMS", "kappa_HDXMS")
 
 for (i in measurements){
   
@@ -201,9 +202,11 @@ pval_text<-data.frame(label = as.numeric(pval_vector),variable=measurements)
 
 melt_kinetics<-melt(kinetics, id=c("nscore_c", "sigma", "ID"))
 
-p_kinetics<-ggplot(melt_kinetics[melt_kinetics$variable %in% measurements,], aes(x=as.numeric(value), y=as.numeric(nscore_c)))+
-  facet_wrap(vars(factor(variable, levels=c( "kn", "k2"),
-                         labels=c("primary/elongation\nkn","secondary/elongation\nk2"))),
+tht_measurements<-c("k+kn_tht", "k+k2_tht")
+
+p_kinetics<-ggplot(melt_kinetics[melt_kinetics$variable %in% tht_measurements,], aes(x=as.numeric(value), y=as.numeric(nscore_c)))+
+  facet_wrap(vars(factor(variable, levels=c( "k+kn_tht", "k+k2_tht"),
+                         labels=c("primary (k+kn)","secondary (k+k2)"))),
              scales = "free", ncol=5)+
              #ncol=5)+
              
@@ -212,8 +215,8 @@ p_kinetics<-ggplot(melt_kinetics[melt_kinetics$variable %in% measurements,], aes
   geom_point(size=3, color="black")+
   labs(y="Nucleation score")+
   theme_bw()+
-  geom_text(data=corr_text, aes(label=paste0("R=",round(label, 2)), x=Inf, y=Inf),hjust=3,vjust=4, size=4, colour="black")+
-  geom_text(data=pval_text, aes(label=paste0("p=",format(label, digits = 2, scientific = T)), x=Inf, y=Inf),hjust=3, vjust=6, size=4, colour="black")+
+  geom_text(data=corr_text[corr_text$variable %in% tht_measurements,], aes(label=paste0("R=",round(label, 2)), x=Inf, y=Inf),hjust=3,vjust=4, size=4, colour="black")+
+  geom_text(data=pval_text[pval_text$variable %in% tht_measurements,], aes(label=paste0("p=",format(label, digits = 2, scientific = T)), x=Inf, y=Inf),hjust=3, vjust=6, size=4, colour="black")+
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         strip.text = element_text(size = 12),
@@ -222,7 +225,121 @@ p_kinetics<-ggplot(melt_kinetics[melt_kinetics$variable %in% measurements,], aes
         strip.background=element_rect( color=NA, fill=NA))
 p_kinetics  
 
-ggsave(p_kinetics, file="p_kinetics_NS.pdf", path=path, width = 5, height = 3)
+ggsave(p_kinetics, file="p_kinetics_NS.pdf", path=path, width = 6, height = 3)
+
+
+
+
+
+lambda_kappa_measurements<-c("lambda_HDXMS", "kappa_HDXMS")
+
+p_kinetics<-ggplot(melt_kinetics[melt_kinetics$variable %in% lambda_kappa_measurements,], aes(x=as.numeric(value), y=as.numeric(nscore_c)))+
+  facet_wrap(vars(factor(variable, levels=c( "lambda_HDXMS", "kappa_HDXMS"),
+                         labels=c("lambda (primary)","kappa (secondary)"))),
+             scales = "free", ncol=5)+
+  #ncol=5)+
+  
+  geom_smooth(method='lm',linetype = 2, size=1,  color = "black", fill="grey75")+
+  scale_x_continuous(trans="log10")+
+  geom_point(size=3, color="black")+
+  labs(y="Nucleation score")+
+  theme_bw()+
+  geom_text(data=corr_text[corr_text$variable %in% lambda_kappa_measurements,], aes(label=paste0("R=",round(label, 2)), x=Inf, y=Inf),hjust=3,vjust=4, size=4, colour="black")+
+  geom_text(data=pval_text[pval_text$variable %in% lambda_kappa_measurements,], aes(label=paste0("p=",format(label, digits = 2, scientific = T)), x=Inf, y=Inf),hjust=3, vjust=6, size=4, colour="black")+
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        strip.text = element_text(size = 12),
+        axis.title.x = element_blank(),
+        axis.line = element_line(color="black", size=0.15),
+        strip.background=element_rect( color=NA, fill=NA))
+p_kinetics  
+
+ggsave(p_kinetics, file="p_kinetics_NS_lambda_kappa.pdf", path=path, width = 6, height = 3)
+
+
+
+p<-ggplot(kinetics, aes(x=log10(lambda_HDXMS),
+                        y=log10(kappa_HDXMS)))+
+  geom_point()+
+  geom_text_repel(aes(label=ID))+
+  theme_bw()+
+  geom_abline()+
+  scale_x_continuous(limits = c(-9,-1))+
+  scale_y_continuous(limits = c(-9,-1))+
+  labs(x="lambda (primary)_HDXMS (log10)", y="kappa (secondary)_HDXMS (log10)")+
+  coord_fixed(ratio = 1)
+p
+
+ggsave(p, file="p_kappa_lambda.pdf", path=path,width = 3.5, height = 3.5)
+
+
+
+
+
+
+
+### toxicity validation
+
+toxicity_df$ID_condition_bio_rep<-paste(toxicity_df$ID, toxicity_df$condition, toxicity_df$bio_rep, sep=".")
+
+my_df<-data.frame("ID_condition_bio_rep"=as.character(unique(toxicity_df$ID_condition_bio_rep)),
+                  "mean_growth_rate"= unlist(lapply(unique(toxicity_df$ID_condition_bio_rep), function(x){
+  mean(toxicity_df[toxicity_df$ID_condition_bio_rep==x,]$growth_rate, na.rm=T)
+}))
+)
+
+
+my_df<-left_join(my_df, toxicity_df[,c("ID", "condition", "bio_rep", "ID_condition_bio_rep")], by="ID_condition_bio_rep")
+my_df<-my_df[!duplicated(my_df),]
+
+my_df$ID_condition<-paste(my_df$ID, my_df$condition, sep=".")
+
+
+
+levels_test<-c(unique(my_df$ID_condition))
+levels_test<-c("supN.cu", levels_test[levels_test!="supN.cu"])
+
+duntest<-DunnettTest(my_df$mean_growth_rate, factor(my_df$ID_condition, levels=levels_test), na.rm=T)
+
+duntest<-as.data.frame(duntest$supN.cu)
+duntest$ID<-str_remove(row.names(duntest), "-supN.cu")
+
+#Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+duntest$sig<-""
+tryCatch({ duntest[duntest$pval<0.05,]$sig<-"*" }, error=function(e){})
+tryCatch({ duntest[duntest$pval<0.01,]$sig<-"**" }, error=function(e){})
+tryCatch({ duntest[duntest$pval<0.001,]$sig<-"***" }, error=function(e){})
+
+
+my_df<-left_join(my_df, duntest[,c("ID", "sig")], by=c("ID_condition"="ID"))
+
+
+
+levels_id<-c("supN","AB42","a2v","k28q","g37l","g38v","AB11_42","e22d","e22g","l34i")
+labels_id=c("SupN", "AB42","A2V","K28Q",  "G37L", "G38V","AB11-42", "E22d", "E22G", "L34I")
+
+
+
+p_tox<-ggplot(my_df, aes(x=factor(ID, levels = levels_id, labels = labels_id), y=mean_growth_rate, 
+                          fill=factor(condition, levels=c("no_ind", "cu"), labels=c("no Cu2+", "Cu2+"))))+
+  geom_boxplot(size=0.2)+
+  geom_point(aes(group=factor(condition, levels=c( "no_ind", "cu"), labels=c("no Cu2+", "Cu2+"))), 
+             position=position_jitterdodge() , size=0.5)+
+  theme_bw()+
+  theme(panel.border = element_blank(),
+        axis.line.y = element_line(),
+        #axis.line.x = element_line(),
+        axis.text.x=element_text(angle=45, vjust = 1, hjust=1))+
+  scale_y_continuous(limits = c(0.1, 0.4), expand = c(0,0))+
+
+  labs(x="", y="Growth rate", fill="", group="")+
+  scale_fill_manual(values=c( "no Cu2+"="grey70", "Cu2+"="lightblue"))
+p_tox
+
+
+ggsave(p_tox, file="p_toxicity_validation.pdf",width = 6, height = 3, path=path)
+
+
 
 
 

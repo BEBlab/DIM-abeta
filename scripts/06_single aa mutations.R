@@ -398,8 +398,6 @@ ggsave(p_counts_aa_ins, file="p_counts_aa_ins.pdf",  width = 8, height = 4, path
 ### supplementary dotplots
 
 
-
-
 levels = c("NS- 1%", "NS- 5%", "NS- 10%", "NS- 25%", "WT-like","NS+ 25%", "NS+ 10%", "NS+ 5%", "NS+ 1%")
 
 #colors <- c(colorRampPalette(c( "brown3", "grey95", "darkblue"))(9))
@@ -433,18 +431,20 @@ fdr_categories[(!is.na(fdr_categories$nscore_c) & fdr_categories$p.adjust<0.01 &
 
 ### master boxplot for each AA
 
+AA_loop<- all_aa[all_aa %in% unique(fdr_categories$Mut)]
+
 plot_list<-list()
-for (AA in unique(fdr_categories$Mut)){
+for (AA in AA_loop){
   
   p_AA<-ggplot(fdr_categories, aes(x = factor(Pos, levels=c(1:42), labels=ABseq_pos), y = nscore_c)) +
     
     geom_hline(aes(yintercept = 0), size=0.15, colour="black")+
     geom_boxplot( size=0.2, outlier.shape = NA, color="grey90", fill="white") +
     
-    geom_jitter(data=fdr_categories[fdr_categories$Mut!=AA,],  color="grey90", fill="grey90")+
-    geom_jitter(data=fdr_categories[fdr_categories$Mut==AA,], aes(color=factor(category, levels=levels)))+
+    geom_jitter(data=fdr_categories[fdr_categories$Mut!=AA,],  color="grey90", fill="grey90", show.legend = F)+
+    geom_point(data=fdr_categories[fdr_categories$Mut==AA,], aes(fill=factor(category, levels=levels)), show.legend = F, shape=21, color="black", size=3.5)+
     
-    scale_color_manual("FDR",values=colors)+
+    scale_fill_manual("FDR",values=colors)+
     
     theme_bw()+
     theme(panel.grid.major = element_blank(),
@@ -461,12 +461,9 @@ for (AA in unique(fdr_categories$Mut)){
   
   #ggsave(p_AA, path=path, file=paste0(AA, "_AA_boxplot.pdf"), width = 12, height = 4)
   
-  
 }
 
-aa_plot<-unique(fdr_categories$Mut)
 p_all<-ggarrange(plotlist = plot_list, ncol=2, nrow = 10, common.legend = T)
-
 
 ggsave(p_all, file="p_all_dotplots_subst.pdf", path=path, width = 18, height = 25)
 
@@ -490,19 +487,20 @@ fdr_ins[(!is.na(fdr_ins$nscore_c) & fdr_ins$p.adjust<0.01 & fdr_ins$nscore_c>0),
 
 
 
+AA_loop<- all_aa[all_aa %in% unique(fdr_ins$ins_aa)]
 
 plot_list_ins<-list()
-for (AA in unique(fdr_ins$ins_aa)){
+for (AA in AA_loop){
   
   p_AA<-ggplot(fdr_ins, aes(x = factor((as.numeric(ins_pos)+1), levels=c(2:42)), y = nscore_c)) +
     
     geom_hline(aes(yintercept = 0), size=0.15, colour="black")+
     geom_boxplot( size=0.2, outlier.shape = NA, color="grey90", fill="white") +
     
-    geom_jitter(data=fdr_ins[fdr_ins$ins_aa!=AA,],  color="grey90", fill="grey90")+
-    geom_jitter(data=fdr_ins[fdr_ins$ins_aa==AA,], aes(color=factor(category, levels=levels)))+
+    geom_jitter(data=fdr_ins[fdr_ins$ins_aa!=AA,],  color="grey90", fill="grey90", show.legend = F)+
+    geom_point(data=fdr_ins[fdr_ins$ins_aa==AA,], aes(fill=factor(category, levels=levels)), show.legend = F, shape=21, color="black", size=3.5)+
     
-    scale_color_manual("FDR",values=colors)+
+    scale_fill_manual("FDR",values=colors)+
     
     theme_bw()+
     theme(panel.grid.major = element_blank(),
@@ -522,9 +520,7 @@ for (AA in unique(fdr_ins$ins_aa)){
 }
 
 
-aa_plot<-unique(fdr_ins$ins_aa)
 p_all_ins<-ggarrange(plotlist = plot_list_ins, ncol=2, nrow = 10, common.legend = T)
-
 
 ggsave(p_all_ins, file="p_all_dotplots_ins.pdf", path=path, width = 18, height = 25)
 

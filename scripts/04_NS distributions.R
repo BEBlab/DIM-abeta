@@ -56,6 +56,182 @@ p_dist
 
 
 
+# distributions for APRs and other regions
+
+
+for(APR1 in c("17_21", "16_23")){
+  dist_df<-INDEL.df
+  dist_df$part<-""
+  dist_df$part_fdr<-""
+  
+  if(APR1=="17_21"){
+    reg1<-c(1:11)
+    reg2<-c(12:16)
+    reg3<-c(17:21)
+    reg4<-c(22:28)
+    reg5<-c(29:42)
+  }
+  
+  
+  if(APR1=="16_23"){
+    reg1<-c(1:11)
+    reg2<-c(12:15)
+    reg3<-c(16:23)
+    reg4<-c(24:28)
+    reg5<-c(29:42)
+  }
+  
+  
+  for(i in 1:nrow(dist_df)){
+    
+    # singles
+    if(dist_df[i,]$dataset=="single"){
+      
+      pos<-as.numeric(unlist(strsplit(dist_df[i,]$ID, "-"))[2])
+      
+      if(pos %in% reg1){dist_df[i,]$part<-paste0("reg_", reg1[1], "_", reg1[length(reg1)]) }
+      if(pos %in% reg2){dist_df[i,]$part<-paste0("reg_", reg2[1], "_", reg2[length(reg2)])}
+      if(pos %in% reg3){dist_df[i,]$part<-paste0("reg_", reg3[1], "_", reg3[length(reg3)])}
+      if(pos %in% reg4){dist_df[i,]$part<-paste0("reg_", reg4[1], "_", reg4[length(reg4)])}
+      if(pos %in% reg5){dist_df[i,]$part<-paste0("reg_", reg5[1], "_", reg5[length(reg5)])}
+      
+      
+      if(pos<=28){dist_df[i,]$part_fdr<-"NT"}
+      if(pos>=29){dist_df[i,]$part_fdr<-"CT"}
+      
+    }
+    
+    # single deletions
+    if(dist_df[i,]$dataset=="single_deletion"){
+      
+      pos0<-unlist(strsplit(dist_df[i,]$ID, "_"))[3]
+      pos<-as.numeric(unlist(strsplit(pos0, "-"))[1])
+      
+      
+      if(pos %in% reg1){dist_df[i,]$part<-paste0("reg_", reg1[1], "_", reg1[length(reg1)]) }
+      if(pos %in% reg2){dist_df[i,]$part<-paste0("reg_", reg2[1], "_", reg2[length(reg2)])}
+      if(pos %in% reg3){dist_df[i,]$part<-paste0("reg_", reg3[1], "_", reg3[length(reg3)])}
+      if(pos %in% reg4){dist_df[i,]$part<-paste0("reg_", reg4[1], "_", reg4[length(reg4)])}
+      if(pos %in% reg5){dist_df[i,]$part<-paste0("reg_", reg5[1], "_", reg5[length(reg5)])}
+      
+      
+      if(pos<=28){dist_df[i,]$part_fdr<-"NT"}
+      if(pos>=29){dist_df[i,]$part_fdr<-"CT"}
+    }
+    
+    
+    # single insertions
+    if(dist_df[i,]$dataset=="insertion"){
+      
+      pos<-as.numeric(unlist(strsplit(dist_df[i,]$ID, "_"))[3])
+      
+      if(pos %in% reg1){dist_df[i,]$part<-paste0("reg_", reg1[1], "_", reg1[length(reg1)]) }
+      if(pos %in% reg2){dist_df[i,]$part<-paste0("reg_", reg2[1], "_", reg2[length(reg2)])}
+      if(pos %in% reg3){dist_df[i,]$part<-paste0("reg_", reg3[1], "_", reg3[length(reg3)])}
+      if(pos %in% reg4){dist_df[i,]$part<-paste0("reg_", reg4[1], "_", reg4[length(reg4)])}
+      if(pos %in% reg5){dist_df[i,]$part<-paste0("reg_", reg5[1], "_", reg5[length(reg5)])}
+      
+      
+      if(pos<=28){dist_df[i,]$part_fdr<-"NT"}
+      if(pos>28){dist_df[i,]$part_fdr<-"CT"}
+    }
+    
+    # deletions
+    if(dist_df[i,]$dataset=="deletion"){
+      
+      pos0<-unlist(strsplit(dist_df[i,]$ID, ";"))[1]
+      pos<-unlist(strsplit(pos0, "_"))[3]
+      
+      start<-as.numeric(unlist(strsplit(pos, "-"))[1])
+      end<-as.numeric(unlist(strsplit(pos, "-"))[2])
+      
+      
+      region=seq(start, end, 1)
+      
+      if(start<(reg4[1]) & end<(reg5[1]) & end>(reg3[1]-1)){dist_df[i,]$part<-"APR1"}
+      if(start>(reg4[1]-1) & end>(reg5[1]-1)){dist_df[i,]$part<-"APR2"}
+      if(start<(reg4[1]) & end>(reg5[1]-1)){dist_df[i,]$part<-"APR1_APR2"}
+      
+      if( sum(region %in% c(reg3, reg5))==0){dist_df[i,]$part<-"no APRs"}
+      
+      
+      
+      if(end<(reg5[1])){dist_df[i,]$part_fdr<-"NT"}
+      if(start>(reg5[1]-1)){dist_df[i,]$part_fdr<-"CT"}
+      if(start<(reg5[1]) & end>(reg5[1]-1)){dist_df[i,]$part_fdr<-"both"}
+      
+    }
+    
+    
+    # truncations
+    if( dist_df[i,]$dataset=="truncation"){
+      
+      pos00<-as.vector(unlist(strsplit(dist_df[i,]$ID, ";")))
+      pos0<-pos00[!is.na(str_extract(pos00, "kmer"))]
+      pos<-unlist(strsplit(pos0, "_"))[2]
+      
+      start<-as.numeric(unlist(strsplit(pos, "-"))[1])
+      end<-as.numeric(unlist(strsplit(pos, "-"))[2])
+      
+      
+      del_region=c(1:42)[-seq(start, end, 1)]
+      
+      if( sum(del_region %in% reg3)!=0){dist_df[i,]$part<-"APR1"}
+      if( sum(del_region %in% reg5)!=0){dist_df[i,]$part<-"APR2"}
+      if( sum(del_region %in% reg3)!=0 & sum(del_region %in% reg5)!=0  ){dist_df[i,]$part<-"APR1_APR2"}
+      if( sum(del_region %in% c(reg3, reg5))==0){dist_df[i,]$part<-"no APRs"}
+      
+      
+      dist_df[i,]$part_fdr<-"both"
+      if(start<(reg5[1]) & end==42 ){dist_df[i,]$part_fdr<-"NT"}
+      if(end>(reg5[1]-1) & start==1){dist_df[i,]$part_fdr<-"CT"}
+      
+    }
+    
+    
+  }
+  
+  
+  
+  levels_part=c("APR1", "APR2", "APR1_APR2", "no APRs",
+                paste0("reg_", reg1[1], "_", reg1[length(reg1)]),
+                paste0("reg_", reg2[1], "_", reg2[length(reg2)]),
+                paste0("reg_", reg3[1], "_", reg3[length(reg3)]),
+                paste0("reg_", reg4[1], "_", reg4[length(reg4)]),
+                paste0("reg_", reg5[1], "_", reg5[length(reg5)]) )
+  
+  
+  p_dist_part<-ggplot(dist_df[dist_df$dataset!="WT" ,], aes(y=nscore_c, x=factor(part, levels=levels_part)))+
+    geom_hline(yintercept = 0, size=0.1)+
+    geom_violin(show.legend = F, size=0.2)+
+    geom_jitter(size=0.1, width=0.1, color="grey80")+
+    geom_boxplot(width=0.1,outlier.shape = NA, fill=NA, size=0.2)+
+    facet_wrap(~factor(dataset, levels=levels_dataset,labels = labels_dataset),ncol=5, scales="free_x" )+
+    theme_bw()+
+    theme(panel.grid = element_blank(),
+          strip.text = element_blank(),
+          strip.background = element_blank(),
+          panel.border = element_rect(size=0.2),
+          axis.ticks = element_line(size=0.1),
+          axis.text.x = element_text(angle = 45, hjust=1))+
+    labs(y="Nucleation score", x="")
+  p_dist_part
+  #ggsave(p_dist_part, file=paste0("p_NS_distributions_NT_CT_",APR1, ".pdf"), width = 10, height = 3, path=path)
+  
+  
+  # both distribution plots together
+  p_both<-ggarrange(p_dist, p_dist_part, ncol=1, align = "v")
+  p_both
+  ggsave(p_both, file=paste0("p_NS_distributions_both_", APR1, ".pdf"), width = 8, height = 4, path=path)
+  
+  
+  
+}
+
+
+
+
+
 # distributions for NT and CT separately. some mutations will affect both 
 dist_df<-INDEL.df
 dist_df$part<-""
@@ -123,38 +299,8 @@ for(i in 1:nrow(dist_df)){
   
   #silent
   if( dist_df[i,]$dataset=="silent"){dist_df[i,]$part<-"all"}
-
+  
 }
-
-
-
-p_dist_part<-ggplot(dist_df[dist_df$dataset!="WT" ,], aes(y=nscore_c, x=factor(part,levels=c("NT", "CT", "both"))))+
-  geom_hline(yintercept = 0, size=0.1)+
-  geom_violin(show.legend = F, size=0.2)+
-  geom_jitter(size=0.1, width=0.1, color="grey80")+
-  geom_boxplot(width=0.1,outlier.shape = NA, fill=NA, size=0.2)+
-  facet_wrap(~factor(dataset, levels=levels_dataset,labels = labels_dataset),ncol=5, scales="free_x" )+
-  theme_bw()+
-  theme(panel.grid = element_blank(),
-        strip.text = element_text(size=12),
-        strip.background = element_blank(),
-        panel.border = element_rect(size=0.2),
-        axis.ticks = element_line(size=0.1))+
-  labs(y="Nucleation score", x="")
-p_dist_part
-#ggsave(p_dist_part, file="p_NS_distributions_NT_CT.pdf", width = 8, height = 2, path=path)
-
-
-
-# both distribution plots together
-p_both<-ggarrange(p_dist, p_dist_part, ncol=1, align = "v")
-p_both
-ggsave(p_both, file="p_NS_distributions_both.pdf", width = 8, height = 4, path=path)
-
-
-
-
-
 
 
 # stacked barplot FDR10 NS categories for each dataset
