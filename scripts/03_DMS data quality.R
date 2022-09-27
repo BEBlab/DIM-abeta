@@ -234,13 +234,14 @@ ggsave(p_kinetics, file="p_kinetics_NS.pdf", path=path, width = 6, height = 3)
 lambda_kappa_measurements<-c("lambda_HDXMS", "kappa_HDXMS")
 
 p_kinetics<-ggplot(melt_kinetics[melt_kinetics$variable %in% lambda_kappa_measurements,], aes(x=as.numeric(value), y=as.numeric(nscore_c)))+
-  facet_wrap(vars(factor(variable, levels=c( "lambda_HDXMS", "kappa_HDXMS"),
+ 
+   facet_wrap(vars(factor(variable, levels=c( "lambda_HDXMS", "kappa_HDXMS"),
                          labels=c("lambda (primary)","kappa (secondary)"))),
              scales = "free", ncol=5)+
-  #ncol=5)+
-  
+
   geom_smooth(method='lm',linetype = 2, size=1,  color = "black", fill="grey75")+
   scale_x_continuous(trans="log10")+
+  scale_y_continuous(limits = c(-2, 4))+
   geom_point(size=3, color="black")+
   labs(y="Nucleation score")+
   theme_bw()+
@@ -319,12 +320,11 @@ levels_id<-c("supN","AB42","a2v","k28q","g37l","g38v","AB11_42","e22d","e22g","l
 labels_id=c("SupN", "AB42","A2V","K28Q",  "G37L", "G38V","AB11-42", "E22d", "E22G", "L34I")
 
 
-
 p_tox<-ggplot(my_df, aes(x=factor(ID, levels = levels_id, labels = labels_id), y=mean_growth_rate, 
-                          fill=factor(condition, levels=c("no_ind", "cu"), labels=c("no Cu2+", "Cu2+"))))+
-  geom_boxplot(size=0.2)+
+                          color=factor(condition, levels=c("no_ind", "cu"), labels=c("no Cu2+", "Cu2+"))))+
+  #geom_boxplot(size=0.2)+
   geom_point(aes(group=factor(condition, levels=c( "no_ind", "cu"), labels=c("no Cu2+", "Cu2+"))), 
-             position=position_jitterdodge() , size=0.5)+
+             position=position_dodge(width = 0.5) , size=2)+
   theme_bw()+
   theme(panel.border = element_blank(),
         axis.line.y = element_line(),
@@ -332,8 +332,8 @@ p_tox<-ggplot(my_df, aes(x=factor(ID, levels = levels_id, labels = labels_id), y
         axis.text.x=element_text(angle=45, vjust = 1, hjust=1))+
   scale_y_continuous(limits = c(0.1, 0.4), expand = c(0,0))+
 
-  labs(x="", y="Growth rate", fill="", group="")+
-  scale_fill_manual(values=c( "no Cu2+"="grey70", "Cu2+"="lightblue"))
+  labs(x="", y="Growth rate", color="", group="")+
+  scale_color_manual(values=c( "no Cu2+"="grey50", "Cu2+"="darkblue"))
 p_tox
 
 
