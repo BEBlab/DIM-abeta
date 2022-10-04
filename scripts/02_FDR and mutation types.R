@@ -10,7 +10,9 @@ require(stringr)
 ##  import required data 
 load("required data/fAD.df.RData")
 load("required data/indels_library.RData")
-INDEL.df<-as.data.frame(read_excel("required data/MS_BL_BB_indels_processed_data.xlsx", sheet="all_variants"))
+#INDEL.df<-as.data.frame(read_excel("required data/MS_BL_BB_indels_processed_data.xlsx", sheet="all_variants"))
+INDEL.df<-read.table("required data/MS_BL_BB_indels_processed_data.tsv", header = T)
+
 
 
 #########################################################################################################################################
