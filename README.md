@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/449062573.svg)](https://zenodo.org/badge/latestdoi/449062573)
+
 # Deep Indel Mutagenesis of amyloid beta
 Pipeline to replicate the analysis and figures in: 
 <a href="https://www.biorxiv.org/content/10.1101/2022.01.18.476804v1">An atlas of amyloid aggregation: the impact of substitutions, insertions, deletions and truncations on amyloid beta fibril nucleation</a>
