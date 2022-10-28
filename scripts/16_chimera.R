@@ -208,8 +208,11 @@ write.table(write_text, file=paste0(path, "/attrfile_trunc_NS.txt"), quote = F, 
 # % NS+ and % NS- (substitutions, insertions and N-terminal multi AA deletions)
 
 
-##  rangecolor attrfile_inc 0 #dddddd 0.2 #C6C6D3 0.4 #9A9ABF 0.6 #424299 1 #00007C novalue #f2f2f2
+##  rangecolor attrfile_inc 0 #dddddd 0.2 #C6C6D3 0.4 #9A9ABF 0.6 #424299 1 #00007C novalue #f2f2f2 
 ##  rangecolor attrfile_dec 0 #dddddd 0.2 #D5C9C9 0.4 #C6A2A2 0.6 #A75454 1 #911A1A novalue #f2f2f2
+
+# example color side chains
+## rangecolor attrfile_inc 0 #dddddd 0.2 #C6C6D3 0.4 #9A9ABF 0.6 #424299 1 #00007C novalue #f2f2f2; color #0c5bb0,a :lys,arg; color #ee0011,a :asp,glu; color #a9a9a9,a :ala,leu,ile,met,val; color #9a703e,a :phe,tyr; color #15983d,a :his,ser,asn,gln
 
 
 # plot NS in single AA deletions and N-terminal truncations 
